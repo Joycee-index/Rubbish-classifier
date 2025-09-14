@@ -18,7 +18,12 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["ai", "classification", "waste", "rubbish"],
+  "keywords": [
+    "ai",
+    "classification",
+    "waste",
+    "rubbish"
+  ],
   "author": "",
   "license": "ISC"
 }

@@ -1,7 +1,15 @@
 /**
  * Minimal Rubbish Classifier
+ * Built with Kiro AI assistance
+ * 
  * Input: Photo of rubbish
- * Output: Points earned
+ * Output: Waste category (plastic, paper, glass, metal, organic, hazardous, unknown)
+ * 
+ * Kiro helped with:
+ * - OpenAI Vision API integration
+ * - Enhanced keyword mapping for accurate classification
+ * - Error handling and fallback logic
+ * - Code optimization and best practices
  */
 
 class MinimalRubbishClassifier {
