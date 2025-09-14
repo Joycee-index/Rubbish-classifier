@@ -7,17 +7,6 @@
 class MinimalRubbishClassifier {
     constructor(apiKey) {
         this.apiKey = apiKey;
-
-        // Points per gram for each category
-        this.pointsMultipliers = {
-            'metal': 0.03,
-            'plastic': 0.02,
-            'glass': 0.015,
-            'paper': 0.01,
-            'organic': 0.005,
-            'hazardous': 0.0,
-            'unknown': 0.0
-        };
     }
 
     /**
@@ -41,31 +30,7 @@ class MinimalRubbishClassifier {
         }
     }
 
-    /**
-     * Classify rubbish photo and return points
-     * @param {string|File} image - Image to analyze
-     * @param {number} weight - Weight in grams (optional, will estimate if not provided)
-     * @returns {Promise<number>} Points earned
-     */
-    async getPoints(image, weight = null) {
-        try {
-            // Convert image to base64 if needed
-            const base64Image = await this.prepareImage(image);
 
-            // Classify with AI
-            const category = await this.classifyImage(base64Image);
-
-            // Estimate weight if not provided
-            const finalWeight = weight || this.estimateWeight(category);
-
-            // Calculate and return points
-            return this.calculatePoints(finalWeight, category);
-
-        } catch (error) {
-            console.error('Classification failed:', error.message);
-            return 0; // Return 0 points on failure
-        }
-    }
 
     /**
      * Classify image using OpenAI with fallback
@@ -112,7 +77,7 @@ class MinimalRubbishClassifier {
 
             console.log(`AI said: "${aiResponse}" -> Mapped to: "${category}"`);
             return category;
-            
+
         } catch (error) {
             console.log(`⚠️ OpenAI classification failed: ${error.message}, using fallback`);
             return this.fallbackClassification();
@@ -123,12 +88,13 @@ class MinimalRubbishClassifier {
      * Simple fallback classification when AI is not available
      */
     fallbackClassification() {
-        // For demo purposes, return a random realistic category
-        const categories = ['plastic', 'paper', 'glass', 'metal', 'organic'];
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+        // Since most household waste is plastic, default to plastic
+        // This gives better accuracy than random when AI is unavailable
+        const category = 'plastic';
         
-        console.log(`🎲 Fallback classification: ${randomCategory}`);
-        return randomCategory;
+        console.log(`🎲 Fallback classification (AI unavailable): ${category}`);
+        console.log('💡 Tip: Wait a few minutes for OpenAI rate limits to reset');
+        return category;
     }
 
     /**
@@ -137,19 +103,20 @@ class MinimalRubbishClassifier {
     mapToCategory(aiResponse) {
         if (!aiResponse) return 'plastic';
 
-        // Direct matches
-        if (this.pointsMultipliers.hasOwnProperty(aiResponse)) {
+        // Direct matches - check if response is already a valid category
+        const validCategories = ['plastic', 'paper', 'glass', 'metal', 'organic', 'hazardous', 'unknown'];
+        if (validCategories.includes(aiResponse)) {
             return aiResponse;
         }
 
-        // Keyword mapping for common AI responses
+        // Enhanced keyword mapping for better accuracy
         const categoryKeywords = {
-            'paper': ['paper', 'cardboard', 'newspaper', 'magazine', 'book', 'receipt', 'tissue', 'toilet paper', 'napkin', 'document'],
-            'plastic': ['plastic', 'bottle', 'container', 'bag', 'packaging', 'wrapper', 'cup', 'straw', 'utensil'],
-            'glass': ['glass', 'jar', 'bottle glass', 'window', 'mirror', 'glassware'],
-            'metal': ['metal', 'aluminum', 'can', 'tin', 'steel', 'copper', 'iron', 'foil'],
-            'organic': ['organic', 'food', 'fruit', 'vegetable', 'compost', 'biodegradable', 'apple', 'banana', 'waste food'],
-            'hazardous': ['battery', 'electronic', 'chemical', 'paint', 'toxic', 'dangerous', 'hazardous', 'medical']
+            'paper': ['paper', 'cardboard', 'newspaper', 'magazine', 'book', 'receipt', 'tissue', 'toilet paper', 'napkin', 'document', 'envelope', 'pizza box', 'cereal box', 'milk carton', 'egg carton'],
+            'plastic': ['plastic', 'bottle', 'container', 'bag', 'packaging', 'wrapper', 'cup', 'straw', 'utensil', 'water bottle', 'soda bottle', 'yogurt container', 'takeout container', 'plastic bag', 'bubble wrap', 'styrofoam'],
+            'glass': ['glass', 'jar', 'bottle glass', 'window', 'mirror', 'glassware', 'wine bottle', 'beer bottle', 'jam jar', 'pickle jar', 'glass container'],
+            'metal': ['metal', 'aluminum', 'can', 'tin', 'steel', 'copper', 'iron', 'foil', 'soda can', 'beer can', 'food can', 'aluminum foil', 'metal lid', 'bottle cap'],
+            'organic': ['organic', 'food', 'fruit', 'vegetable', 'compost', 'biodegradable', 'apple', 'banana', 'waste food', 'food scraps', 'peel', 'core', 'leftovers', 'coffee grounds', 'tea bag'],
+            'hazardous': ['battery', 'electronic', 'chemical', 'paint', 'toxic', 'dangerous', 'hazardous', 'medical', 'phone', 'computer', 'lightbulb', 'motor oil', 'cleaning product']
         };
 
         // Check for keyword matches
@@ -163,36 +130,7 @@ class MinimalRubbishClassifier {
         return 'unknown';
     }
 
-    /**
-     * Estimate weight based on category
-     */
-    estimateWeight(category) {
-        const averageWeights = {
-            'plastic': 50,
-            'paper': 25,
-            'glass': 200,
-            'metal': 30,
-            'organic': 100,
-            'hazardous': 50,
-            'unknown': 50
-        };
-        return averageWeights[category] || 50;
-    }
 
-    /**
-     * Calculate points from weight and category
-     */
-    calculatePoints(weight, category) {
-        const multiplier = this.pointsMultipliers[category] || 0;
-        let points = weight * multiplier;
-
-        // Minimum 0.1 points for items under 5g
-        if (weight > 0 && weight < 5 && multiplier > 0 && points < 0.1) {
-            points = 0.1;
-        }
-
-        return Math.round(points * 10) / 10;
-    }
 
     /**
      * Convert image to base64

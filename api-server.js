@@ -20,57 +20,6 @@ app.use(express.json({ limit: '10mb' }));
 const apiKey = process.env.OPENAI_API_KEY || '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';
 const classifier = new MinimalRubbishClassifier(apiKey);
 
-// API endpoint: POST /classify
-app.post('/classify', upload.single('image'), async (req, res) => {
-    try {
-        console.log('📸 Received classification request');
-        console.log('Request details:', {
-            hasFile: !!req.file,
-            hasBody: !!req.body,
-            contentType: req.headers['content-type']
-        });
-        
-        let imageData;
-        
-        // Handle different input formats
-        if (req.file) {
-            console.log('📁 Processing file upload, size:', req.file.size);
-            imageData = req.file;
-        } else if (req.body.image) {
-            console.log('📋 Processing base64 image');
-            imageData = req.body.image;
-        } else {
-            console.log('❌ No image data found');
-            return res.status(400).json({ 
-                error: 'No image provided',
-                success: false 
-            });
-        }
-        
-        // Get points from classifier
-        console.log('🤖 Calling AI classifier...');
-        const points = await classifier.getPoints(imageData, req.body.weight);
-        
-        console.log('✅ Classification complete, points:', points);
-        
-        // Return result
-        res.json({
-            success: true,
-            points: points,
-            timestamp: new Date().toISOString()
-        });
-        
-    } catch (error) {
-        console.error('❌ Classification error:', error);
-        
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            points: 0
-        });
-    }
-});
-
 // API endpoint: POST /category (returns only category)
 app.post('/category', upload.single('image'), async (req, res) => {
     try {
@@ -131,8 +80,8 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Rubbish Classifier API running on port ${PORT}`);
-    console.log(`📡 Endpoint: http://localhost:${PORT}/classify`);
-    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    console.log(`📡 Category endpoint: http://localhost:${PORT}/category`);
+    console.log(`🏥 Health check: http://localhost:${PORT}/test`);
 });
 
 module.exports = app;

@@ -1,0 +1,23 @@
+{
+  "name": "Validate API Key on Environment Change",
+  "description": "Check OpenAI API key validity when .env.prod is modified",
+  "trigger": {
+    "type": "file_save",
+    "patterns": [
+      ".env.prod"
+    ]
+  },
+  "actions": [
+    {
+      "type": "run_command",
+      "command": "node -e \"require('dotenv').config({path: '.env.prod'}); console.log('OpenAI API Key:', process.env.OPENAI_API_KEY ? 'Set ✅' : 'Missing ❌');\"",
+      "description": "Verify OpenAI API key is configured"
+    },
+    {
+      "type": "notification",
+      "message": "Environment updated - restart API server if running",
+      "level": "info"
+    }
+  ],
+  "enabled": true
+}

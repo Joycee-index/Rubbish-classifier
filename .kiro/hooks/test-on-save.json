@@ -1,0 +1,24 @@
+{
+  "name": "Test Classification on Save",
+  "description": "Automatically test the classifier when core files are modified",
+  "trigger": {
+    "type": "file_save",
+    "patterns": [
+      "api-server.js",
+      "minimal-rubbish-classifier.js"
+    ]
+  },
+  "actions": [
+    {
+      "type": "run_command",
+      "command": "node test-classifier-categories.js",
+      "description": "Run classification tests to ensure functionality"
+    },
+    {
+      "type": "run_command", 
+      "command": "curl -s http://localhost:3000/test || echo 'Server not running - start with: node api-server.js'",
+      "description": "Check if API server is running"
+    }
+  ],
+  "enabled": true
+}
